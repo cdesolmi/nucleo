@@ -5,10 +5,34 @@ entra.
 
 ---
 
+## Anotado para la próxima versión
+
+Nada de esto está en v0.1.0, que no se toca. Son hallazgos de la segunda app que esperan la regla de
+admisión.
+
+**`70ch` no da 78 caracteres, da unos 105.** La regla escrita en `02-anchos.md` §2 dice que ninguna
+línea de prosa pasa de 78 caracteres, y la traduce a código como `.prosa { max-width: 70ch }`. Medido
+en pantalla en el entrenador de ajedrez, ese `70ch` deja líneas de 92 a 108 caracteres. El motivo es
+que `ch` mide el ancho del cero, que es de los caracteres más gruesos, y en una tipografía proporcional
+la letra media es bastante más angosta. El valor que da 78 caracteres exactos, medido, es `50ch`.
+
+El entrenador de ajedrez usa `50ch` y cumple la regla escrita. Falta una segunda app que confirme el
+número antes de cambiar `.prosa` en el núcleo, porque el valor depende de la tipografía y con una sola
+medición no se sabe si `50ch` es general o es propio de DM Sans. Candidato a `--prosa-max`, para que
+cada app pueda ajustarlo sin reescribir el selector.
+
+**Los campos de formulario necesitan una regla, no solo un token.** El núcleo define `--t-campo: 16px`
+pero no lo aplica a ningún selector, así que una app puede cargar el núcleo y seguir teniendo campos de
+11 px que hacen zoom en Safari. Fue exactamente lo que pasó en el entrenador. Candidato: que el núcleo
+aplique `font-size: var(--t-campo)` y `min-height: var(--tap)` a `input`, `select` y `textarea` de
+entrada, con la salvedad de las casillas de verificación.
+
+---
+
 ## v0.1.0 — 2026-08-24
 
 Primera extracción, desde la app de objetivos (FOST) después de dos meses de uso real. **Probado en una
-sola app**: todo aquí es candidato, no ley. Segunda prueba pendiente: entrenador de ajedrez.
+sola app**: todo aquí es candidato, no ley. Segunda prueba: entrenador de ajedrez, 2026-09-06.
 
 **`nucleo.css`** — Las directrices dejan de ser solo prosa y pasan a ser un archivo que una app puede
 cargar. Contiene los tokens con valores neutros de relleno, la base, la escalera de anchos completa, el
