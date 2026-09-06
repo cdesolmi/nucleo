@@ -1,0 +1,539 @@
+/* ============================================================================
+   NÚCLEO · v0.1.0
+   Sistema compartido de estructura, usabilidad y comportamiento.
+
+   Qué hace este archivo:
+     - Fija los NOMBRES de los tokens y las escalas que no son de color.
+     - Fija la escalera de anchos, el shell y el comportamiento de los
+       componentes base.
+
+   Qué NO hace:
+     - No impone paleta ni tipografía. Los tokens de color traen valores
+       neutros de relleno para que una app nueva arranque viéndose decente;
+       cada app los sobreescribe en su propio archivo, cargado DESPUÉS.
+
+   Regla que gobierna todo:
+     El núcleo dice cómo se comporta algo. Cada app dice qué hay dentro
+     y de qué color.
+
+   Documentación: https://github.com/cdesolmi/nucleo
+   ========================================================================= */
+
+/* ---------------------------------------------------------------------------
+   1 · TOKENS
+   Los marcados APP los sobreescribe cada app. Los marcados NÚCLEO se dejan.
+   ------------------------------------------------------------------------ */
+
+:root {
+  /* ---------- superficie · APP ---------- */
+  --fondo:        #F4F5F7;   /* fondo de la app */
+  --panel:        #FFFFFF;   /* tarjetas, listas, formularios */
+  --fondo-hondo:  #EBEDF0;   /* barras de filtro, zonas hundidas */
+  --linea:        #DFE2E6;   /* bordes y separadores de zonas */
+  --linea-suave:  #EFF1F3;   /* separadores dentro de una tarjeta */
+
+  /* ---------- tinta · APP ---------- */
+  --tinta:        #14171C;   /* texto principal   · ≥ 12:1 sobre fondo */
+  --tinta-media:  #5C6470;   /* metadatos, íconos · ≥ 4.5:1 sobre fondo */
+  --tinta-tenue:  #AAB1BA;   /* placeholders y dato ausente.
+                                NUNCA texto que haya que leer */
+
+  /* ---------- bloque · APP ---------- */
+  --bloque:         #1B222E; /* la superficie llena, UNA por pantalla */
+  --bloque-texto:   #FFFFFF;
+  --bloque-grafico: #8FA6C8;
+
+  /* ---------- acento · APP ---------- */
+  --acento:       #2F5BD7;   /* acción y elemento seleccionado
+                                · ≥ 4.5:1 sobre panel */
+  --acento-hondo: #2447AC;   /* hover / pressed */
+  --acento-tenue: #EEF2FD;   /* fila seleccionada, chip de acento */
+
+  /* ---------- semánticos · valores APP, nombres NÚCLEO ---------- */
+  --logro:     #0B7A66;  --logro-tenue:     #E8F5F1;
+  --atencion:  #96650A;  --atencion-tenue:  #FBF3E1;
+  --alerta:    #C4362D;  --alerta-tenue:    #FCEFEE;
+  --pausa:     #5C6470;
+  --foco:      #9CC0FF;      /* anillo de foco de teclado, 2 px */
+
+  /* ---------- tipografía · familias APP, escala NÚCLEO ---------- */
+  --fuente-cifra: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fuente-ui:    system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --t-cifra:    clamp(44px, 2rem + 1.6vw, 56px);
+  --t-cifra-ch: clamp(36px, 1.7rem + 1.2vw, 44px);
+  --t-h1:       clamp(26px, 1.2rem + 1.1vw, 34px);
+  --t-h2:       20px;
+  --t-titulo:   16px;
+  --t-cuerpo:   clamp(15px, 0.9rem + 0.2vw, 16px);
+  --t-meta:     13px;   /* fijo */
+  --t-chip:     12px;   /* fijo */
+  --t-rotulo:   11px;   /* fijo */
+  --t-campo:    16px;   /* fijo — bajo esto Safari hace zoom al enfocar */
+
+  /* ---------- espacio y forma · NÚCLEO ---------- */
+  --e1:4px; --e2:8px; --e3:12px; --e4:16px; --e5:24px; --e6:32px; --e7:48px;
+  --r-control:10px; --r-tarjeta:16px; --r-chip:8px; --r-marca:2px;
+  --sombra-1:0 1px 2px rgba(0,0,0,.05);
+  --sombra-2:0 12px 32px rgba(0,0,0,.12);
+  --curva:cubic-bezier(.2,.8,.2,1);
+
+  /* ---------- interacción · NÚCLEO ---------- */
+  --tap:44px; --tap-sep:8px; --barra-inf:64px; --franja:56px;
+
+  /* ---------- duraciones · NÚCLEO ---------- */
+  --d-estado:120ms; --d-aparece:200ms; --d-hoja:260ms;
+
+  /* ---------- escalera de anchos · NÚCLEO ----------
+     --contenido-max mide la zona a la derecha del carril: el rail va
+     ADENTRO y --nav-w NO se le suma. Sumarlos da un número que no cabe
+     en el viewport y hace pensar que el token está mal. */
+  --nav-w:0px;            /* 0 = la navegación va al pie, como en el teléfono */
+  --contenido-max:100%;
+  --gutter:var(--e4);
+  --rail-w:0px;           /* 0 = sin segundo carril */
+  --row-h:128px;          /* alto de fila de lista */
+  --tap-fila:var(--tap);  /* controles DENTRO de una fila */
+  --form-max:720px;       /* un formulario no crece con el monitor */
+}
+
+/* ---------------------------------------------------------------------------
+   2 · LA ESCALERA DE ANCHOS
+   Cuatro cortes y ninguno más. Cada escalón introduce UN solo cambio y
+   hereda todo lo anterior: por eso se puede probar y por eso, cuando algo
+   se ve mal, se sabe en qué escalón se rompió.
+
+   Si algo se rompe en un ancho intermedio se arregla DENTRO de su escalón.
+   No se agrega un quiebre nuevo.
+   ------------------------------------------------------------------------ */
+
+/* Tableta · los destinos salen del pie y pasan a carril de íconos */
+@media (min-width:768px) {
+  :root { --nav-w:72px; --contenido-max:720px; --gutter:var(--e5); }
+}
+/* Laptop · el carril gana rótulos; la fila se aplana a un renglón */
+@media (min-width:1000px) {
+  :root { --nav-w:216px; --contenido-max:1040px; --row-h:72px; --tap-fila:36px; }
+}
+/* Monitor · aparece el segundo carril */
+@media (min-width:1280px) {
+  :root { --contenido-max:1280px; --gutter:28px; --rail-w:320px; }
+}
+/* Grande · nada crece: el contenido topa y el sobrante es margen */
+@media (min-width:1680px) {
+  :root { --contenido-max:1600px; --rail-w:380px; --form-max:760px; }
+}
+
+/* ---------------------------------------------------------------------------
+   3 · BASE
+   ------------------------------------------------------------------------ */
+
+*, *::before, *::after { box-sizing:border-box; }
+html, body { height:100%; margin:0; }
+
+body {
+  font:var(--t-cuerpo)/1.45 var(--fuente-ui);
+  color:var(--tinta);
+  background:var(--fondo);
+  -webkit-text-size-adjust:100%;
+  overscroll-behavior:none;
+}
+
+button { font:inherit; cursor:pointer; }
+input, select, textarea {
+  font-family:var(--fuente-ui);
+  font-size:var(--t-campo);   /* 16 px o Safari hace zoom al enfocar */
+  color:inherit;
+}
+[hidden] { display:none !important; }
+:focus-visible { outline:2px solid var(--foco); outline-offset:2px; }
+
+a { color:var(--acento); text-decoration:none; }
+a:hover { color:var(--acento-hondo); text-decoration:underline; }
+
+/* Ninguna línea de prosa pasa de 78 caracteres, aunque su carril sea ancho */
+.prosa { max-width:70ch; }
+
+/* Todo número que cambia lleva cifras de ancho fijo, o la caja salta */
+.cifras { font-variant-numeric:tabular-nums; }
+
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
+}
+
+/* ---------------------------------------------------------------------------
+   4 · EL SHELL
+   El defecto exacto que hay que no repetir: darle a los destinos el ASPECTO
+   de carril (íconos, rótulos, activo en color) dejando el contenedor
+   apilando en columna. La navegación queda debajo del contenido, a ancho
+   completo, en todas las pantallas. Se le cambia el contenido al carril,
+   no el eje del layout.
+   ------------------------------------------------------------------------ */
+
+.shell {
+  display:flex;
+  flex-direction:column;      /* móvil: contenido y luego barra al pie */
+  min-height:100dvh;
+}
+
+.contenido {
+  width:min(100% - 2*var(--gutter), var(--contenido-max));
+  margin-inline:auto;
+}
+
+@media (min-width:768px) {
+  .shell { flex-direction:row; }
+
+  .nav {
+    order:-1;                 /* al costado izquierdo aunque en el HTML
+                                 vaya al final */
+    width:var(--nav-w);
+    flex:0 0 var(--nav-w);
+    height:100dvh;
+    position:sticky;
+    top:0;
+    bottom:auto;              /* anula el fixed/bottom de la barra móvil */
+    display:flex;
+    flex-direction:column;    /* los destinos se apilan DENTRO del carril */
+    border-right:1px solid var(--linea);
+    border-top:none;
+  }
+
+  /* Sin esto un título largo estira el flex y desborda. No es opcional. */
+  .contenido { flex:1; min-width:0; }
+}
+
+/* La cuenta y «Salir» van al pie DEL CARRIL, no al pie de la página */
+.nav-pie { margin-top:auto; }
+
+/* Los hijos del carril miden 100% DEL CARRIL, nunca del viewport */
+.nav > * { max-width:100%; }
+
+/* ---------------------------------------------------------------------------
+   5 · NAVEGACIÓN
+   El destino activo se marca IGUAL en todos los anchos: fondo tenue y
+   texto de acento. No con una barra lateral de color — en el carril de
+   72 px no hay dónde ponerla.
+   ------------------------------------------------------------------------ */
+
+.destino {
+  display:flex; align-items:center; gap:var(--e3);
+  min-height:var(--tap); padding:0 var(--e3);
+  border:0; border-radius:var(--r-control);
+  background:none; color:var(--tinta-media);
+  font-size:var(--t-meta); text-align:left;
+}
+.destino[aria-current="page"], .destino.activo {
+  background:var(--acento-tenue);
+  color:var(--acento);
+  font-weight:600;
+}
+.destino .rotulo { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.destino .cuenta { margin-left:auto; font-variant-numeric:tabular-nums; }
+
+/* Carril de solo íconos: cada destino es un cuadro de 44×44.
+   El rótulo y el contador se esconden — un badge de tres dígitos sobre un
+   ícono de 20 px no se lee. */
+@media (min-width:768px) and (max-width:999px) {
+  .destino { width:var(--tap); padding:0; justify-content:center; }
+  .destino .rotulo, .destino .cuenta { display:none; }
+}
+
+/* Barra al pie en el teléfono, respetando el área segura */
+@media (max-width:767px) {
+  .nav {
+    position:fixed; left:0; right:0; bottom:0; z-index:10;
+    display:flex; align-items:center; justify-content:space-around;
+    min-height:var(--barra-inf);
+    padding-bottom:env(safe-area-inset-bottom);
+    background:var(--panel);
+    border-top:1px solid var(--linea);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   6 · DOS CARRILES Y COLUMNAS PARALELAS
+   ------------------------------------------------------------------------ */
+
+/* El rail es CONDICIONAL: si no hay nada que poner, no se renderiza.
+   Nunca una columna de un tercio con el texto «no hay nada pendiente». */
+.dos-carriles {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) var(--rail-w);
+  gap:var(--e5);
+}
+@media (max-width:1279px) {
+  .dos-carriles { grid-template-columns:minmax(0,1fr); }
+}
+
+/* minmax(0,1fr) y no 1fr: sin el minmax, un nombre largo estira su columna
+   y rompe la igualdad de anchos. */
+.columnas {
+  display:grid;
+  grid-template-columns:repeat(var(--n,3), minmax(0,1fr));
+  gap:var(--e4);
+}
+
+/* Un formulario no crece con el monitor: un campo de 1400 px se lee peor */
+.forma { width:min(100%, var(--form-max)); margin-inline:auto; }
+
+/* ---------------------------------------------------------------------------
+   7 · LA FILA
+   La pieza más usada de cualquier app de listas, y donde se concentran los
+   errores de usabilidad. Máximo tres controles visibles: con más, ninguno
+   se encuentra.
+   ------------------------------------------------------------------------ */
+
+.fila {
+  display:flex; align-items:flex-start; gap:var(--e3);
+  padding:var(--e3) var(--e4); min-height:var(--tap);
+  background:var(--panel); border:1px solid var(--linea); border-radius:14px;
+  transition:background var(--d-estado) var(--curva);
+}
+.fila + .fila { margin-top:6px; }   /* aire entre filas, no líneas divisorias */
+
+/* La zona de contenido es UN objetivo táctil y abre el DETALLE, no el editor */
+.fila-ver {
+  flex:1; min-width:0; text-align:left;
+  background:none; border:0; color:inherit; padding:0; font:inherit;
+}
+.fila-titulo {
+  font-family:var(--fuente-cifra); font-weight:500;
+  font-size:var(--t-titulo); line-height:1.35; overflow-wrap:anywhere;
+}
+.fila-meta {
+  display:flex; flex-wrap:wrap; gap:var(--e2); align-items:center;
+  margin-top:5px; font-size:var(--t-meta); color:var(--tinta-media);
+}
+
+.fila-marca { width:9px; height:9px; border-radius:var(--r-marca);
+              flex:none; margin-top:8px; }
+.fila-casilla {
+  width:22px; height:22px; flex:none; margin-top:2px;
+  border:1.6px solid var(--tinta-tenue); border-radius:6px;
+  background:var(--panel); display:grid; place-items:center; color:transparent;
+}
+
+.fila-controles { display:flex; gap:var(--tap-sep); flex:none; }
+.fila-controles button {
+  width:var(--tap-fila); height:var(--tap-fila);
+  display:grid; place-items:center;
+  background:none; border:0; border-radius:var(--r-control);
+  color:var(--tinta-media);
+}
+.fila-controles button.activa { color:var(--acento); }
+.fila-controles button:disabled { color:var(--tinta-tenue); cursor:default; }
+
+@media (hover:hover) { .fila:hover { background:var(--fondo); } }
+.fila.sel { background:var(--acento-tenue); }
+
+/* En un renglón: casilla → texto → estado → controles, todo con elipsis */
+@media (min-width:1000px) {
+  .fila.plana { align-items:center; min-height:var(--row-h); }
+  .fila.plana .fila-titulo,
+  .fila.plana .fila-meta { white-space:nowrap; overflow:hidden;
+                           text-overflow:ellipsis; }
+}
+
+/* ---------------------------------------------------------------------------
+   8 · CHIP
+   Un dato, no una etiqueta. Rectángulo, nunca píldora de 999 px.
+   Todo chip lleva su cifra adentro: uno sin número casi siempre es una
+   etiqueta que no informa.
+   ------------------------------------------------------------------------ */
+
+.chip {
+  display:inline-flex; align-items:center; gap:6px; padding:5px 8px;
+  border-radius:var(--r-chip); font-family:var(--fuente-cifra);
+  font-size:var(--t-chip); font-weight:500; line-height:1; white-space:nowrap;
+  border:1px solid var(--linea); background:var(--fondo-hondo);
+  color:var(--tinta); font-variant-numeric:tabular-nums;
+}
+.chip .marca { width:8px; height:8px; border-radius:var(--r-marca); flex:none; }
+.chip.logro    { background:var(--logro-tenue);    color:var(--logro); }
+.chip.atencion { background:var(--atencion-tenue); color:var(--atencion); }
+.chip.alerta   { background:var(--alerta-tenue);   color:var(--alerta); }
+
+/* ---------------------------------------------------------------------------
+   9 · BOTÓN
+   Un solo primario por vista. Dos primarios es una decisión que no se tomó.
+   Todo botón de solo ícono lleva aria-label Y title.
+   ------------------------------------------------------------------------ */
+
+.btn {
+  min-height:var(--tap); padding:10px 14px;
+  border-radius:var(--r-control); border:1px solid var(--linea);
+  background:var(--panel); color:var(--tinta); font-size:var(--t-meta);
+}
+.btn.prim { background:var(--acento); border-color:var(--acento);
+            color:#fff; font-weight:600; }
+.btn.prim:hover { background:var(--acento-hondo); border-color:var(--acento-hondo); }
+.btn.tinta { background:var(--bloque); border-color:var(--bloque);
+             color:var(--bloque-texto); font-weight:600; }
+.btn.peligro { color:var(--alerta); font-weight:600; }
+.btn.tenue { color:var(--tinta-media); }
+.btn:disabled { opacity:.45; cursor:default; }
+
+/* ---------------------------------------------------------------------------
+   10 · CAMPO
+   La ayuda va BAJO el campo, no en un tooltip, y solo donde el nombre no
+   basta. El error va JUNTO al campo, no arriba del formulario.
+   ------------------------------------------------------------------------ */
+
+.campo {
+  width:100%; padding:11px 12px; font-size:var(--t-campo);
+  border:1px solid var(--linea); border-radius:var(--r-control);
+  background:var(--panel); color:var(--tinta);
+}
+.campo::placeholder { color:var(--tinta-tenue); }
+.campo[aria-invalid="true"] { border-color:var(--alerta); }
+.ayuda { font-size:var(--t-meta); color:var(--tinta-media); margin-top:var(--e1); }
+
+/* ---------------------------------------------------------------------------
+   11 · TARJETA, BLOQUE Y CIFRA
+   Un solo .bloque por pantalla: es la superficie de más peso visual del
+   sistema. Cuando hay cuatro, ninguno dirige la mirada.
+   ------------------------------------------------------------------------ */
+
+.tarjeta {
+  background:var(--panel); border:1px solid var(--linea);
+  border-radius:var(--r-tarjeta); padding:var(--e4);
+}
+/* El filo lleva la identidad de color; el texto de la tarjeta NO la toma */
+.tarjeta.filo { border-left:3px solid var(--filo, var(--acento)); }
+
+.bloque {
+  background:var(--bloque); color:var(--bloque-texto);
+  border-radius:var(--r-tarjeta); padding:var(--e4);
+}
+.bloque .rotulo { color:rgba(255,255,255,.62); }
+
+/* Orden vertical fijo: rótulo → cifra → comparación → gráfico → cobertura */
+.cifra-rotulo {
+  font-family:var(--fuente-cifra); font-size:var(--t-rotulo); line-height:1;
+  font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--tinta-media);
+}
+.cifra {
+  font-family:var(--fuente-cifra); font-weight:700; font-size:var(--t-cifra-ch);
+  line-height:.95; letter-spacing:-.03em; font-variant-numeric:tabular-nums;
+}
+/* La cifra ausente es «—» con la razón escrita, nunca un cero:
+   un cero falso contamina el histórico para siempre. */
+.cifra.ausente { color:var(--tinta-tenue); }
+
+.tendencia {
+  display:flex; align-items:center; gap:6px;
+  font-size:var(--t-meta); font-variant-numeric:tabular-nums;
+}
+.tendencia.sube { color:var(--logro); }
+.tendencia.baja { color:var(--tinta-media); }  /* nunca rojo: es un termómetro */
+
+/* ---------------------------------------------------------------------------
+   12 · HOJA DE DECISIÓN
+   Solo para lo irreversible. Todo lo reversible va con franja de deshacer.
+   ------------------------------------------------------------------------ */
+
+.fondo-hoja {
+  position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.5);
+  display:flex; align-items:flex-end; justify-content:center;
+}
+.hoja {
+  background:var(--panel); width:100%; max-width:520px;
+  border-radius:var(--r-tarjeta) var(--r-tarjeta) 0 0;
+  padding:var(--e5) var(--e5) calc(var(--e5) + env(safe-area-inset-bottom));
+  max-height:88vh; overflow-y:auto; box-shadow:var(--sombra-2);
+  animation:subir var(--d-hoja) var(--curva);
+}
+/* La acción destructiva va a la derecha y separada del resto */
+.hoja .pie {
+  display:flex; justify-content:flex-end; align-items:center;
+  gap:var(--e2); margin-top:var(--e5);
+}
+@media (min-width:1000px) {
+  .fondo-hoja { align-items:center; }
+  .hoja { border-radius:var(--r-tarjeta); }
+}
+
+/* ---------------------------------------------------------------------------
+   13 · LOS CUATRO ESTADOS
+   Casi ninguna app los tiene al empezar, y son los que definen si se siente
+   sólida o rota.
+   ------------------------------------------------------------------------ */
+
+/* Cargando · esqueletos con la forma y el ALTO REAL del contenido.
+   Prohibido: spinner centrado y pantalla en blanco. El esqueleto existe
+   para que nada se mueva cuando llegan los datos. */
+.esq {
+  display:flex; gap:var(--e3); align-items:flex-start;
+  padding:var(--e3) var(--e4);
+  background:var(--panel); border:1px solid var(--linea); border-radius:14px;
+}
+.esq + .esq { margin-top:6px; }
+.esq .marca { width:22px; height:22px; border-radius:6px;
+              background:var(--linea-suave); flex:none; }
+.esq .l1 { height:14px; width:70%; border-radius:4px; background:var(--linea-suave); }
+.esq .l2 { height:11px; width:42%; border-radius:4px;
+           background:var(--fondo-hondo); margin-top:var(--e2); }
+.esq .marca, .esq .l1, .esq .l2 { animation:latir 1.4s ease-in-out infinite; }
+@keyframes latir { 0%,100% { opacity:.55 } 50% { opacity:1 } }
+
+/* Vacío · qué va ahí + una frase que lo DEFINE + el botón que lo crea.
+   La frase enseña el concepto, no anima a usarlo. Nunca una ilustración. */
+.vacio {
+  padding:var(--e4); background:var(--panel);
+  border:1px solid var(--linea); border-radius:var(--r-tarjeta);
+}
+.vacio .que { font-family:var(--fuente-cifra); font-weight:500;
+              font-size:var(--t-titulo); }
+.vacio .por { font-size:var(--t-meta); line-height:1.45;
+              color:var(--tinta-media); margin-top:var(--e1); }
+
+/* Error · qué pasó en primera persona + qué hacer + un botón.
+   Nunca un código, nunca el mensaje del servidor.
+   Máximo un elemento en alerta por pantalla. */
+.error {
+  display:flex; gap:var(--e3); align-items:center;
+  padding:var(--e3) var(--e4);
+  background:var(--panel); border:1px solid var(--linea);
+  border-left:3px solid var(--alerta); border-radius:var(--r-tarjeta);
+  font-size:var(--t-meta);
+}
+
+/* Deshacer · franja para lo reversible, 6 s. Una sola a la vez.
+   Desde 1000 px se ancla al pie del contenido, no al de la ventana. */
+.deshacer {
+  position:fixed; left:var(--e3); right:var(--e3); z-index:12;
+  bottom:calc(var(--barra-inf) + var(--e3) + env(safe-area-inset-bottom));
+  display:flex; align-items:center; gap:var(--e3);
+  padding:var(--e3) var(--e4); border-radius:var(--r-control);
+  background:var(--bloque); color:var(--bloque-texto); font-size:var(--t-meta);
+  box-shadow:var(--sombra-2); animation:subir var(--d-aparece) var(--curva);
+}
+.deshacer button {
+  flex:none; background:none; border:0; color:var(--foco);
+  font-weight:600; font-size:var(--t-meta); min-height:var(--tap);
+}
+@media (min-width:1000px) {
+  .deshacer { position:sticky; left:auto; right:auto; bottom:var(--e4); }
+}
+
+@keyframes subir {
+  from { transform:translateY(16px); opacity:0 }
+  to   { transform:none; opacity:1 }
+}
+
+/* ---------------------------------------------------------------------------
+   14 · GESTOS
+   Se apagan por TIPO DE PUNTERO, no por ancho: hay tabletas de 900 px y
+   laptops táctiles de 1440. Donde hay dedo el gesto funciona en cualquier
+   ancho; donde solo hay mouse, no existe.
+
+   Todo gesto es un atajo, nunca el único camino: cada cosa que se puede
+   hacer deslizando está también en un menú visible.
+   ------------------------------------------------------------------------ */
+
+@media (hover:none) and (pointer:coarse) {
+  .deslizable { touch-action:pan-y; }
+  .deslizable .capa { transition:transform var(--d-estado) var(--curva); }
+}

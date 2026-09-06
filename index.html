@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Núcleo</title>
+<link rel="stylesheet" href="v0.1.0/nucleo.css">
+<style>
+  /* Esta página usa el núcleo sin sobreescribir nada: es la referencia de
+     cómo se ve el sistema con sus valores neutros. */
+  main { padding:var(--e6) 0 var(--e7); }
+  h1 { font-family:var(--fuente-cifra); font-size:var(--t-h1);
+       letter-spacing:-.02em; margin:0 0 var(--e2); }
+  h2 { font-family:var(--fuente-cifra); font-size:var(--t-h2);
+       margin:var(--e6) 0 var(--e3); }
+  code { font-size:var(--t-meta); background:var(--fondo-hondo);
+         padding:2px 6px; border-radius:var(--r-chip); }
+  pre { background:var(--bloque); color:var(--bloque-texto);
+        padding:var(--e4); border-radius:var(--r-tarjeta);
+        overflow-x:auto; font-size:var(--t-meta); }
+  pre code { background:none; padding:0; color:inherit; }
+</style>
+</head>
+<body>
+<main class="contenido">
+
+  <h1>Núcleo</h1>
+  <p class="prosa" style="color:var(--tinta-media)">
+    Sistema compartido de estructura, usabilidad y comportamiento.
+    El núcleo dice cómo se comporta algo; cada app dice qué hay dentro y de qué color.
+  </p>
+
+  <h2>Conectar un proyecto</h2>
+  <pre><code>&lt;link rel="stylesheet" href="https://cdesolmi.github.io/nucleo/v0.1.0/nucleo.css"&gt;
+&lt;link rel="stylesheet" href="app.css"&gt;</code></pre>
+  <p class="prosa" style="font-size:var(--t-meta); color:var(--tinta-media)">
+    El núcleo va primero; la app lo sobreescribe. La dirección lleva la versión
+    adentro y su contenido nunca cambia.
+  </p>
+
+  <h2>Versiones publicadas</h2>
+  <div class="fila">
+    <div class="fila-ver">
+      <div class="fila-titulo">v0.1.0</div>
+      <div class="fila-meta">
+        <span class="chip">1 app probada</span>
+        <span>Extraído de la app de objetivos · 2026-08-24</span>
+      </div>
+    </div>
+    <div class="fila-controles">
+      <a class="btn" href="v0.1.0/nucleo.css">Ver el CSS</a>
+    </div>
+  </div>
+
+  <h2>Las directrices</h2>
+  <p class="prosa" style="font-size:var(--t-meta); color:var(--tinta-media)">
+    Los nueve documentos viven en <code>docs/</code> del repositorio y son la parte
+    que más rinde, aunque el proyecto no cargue el CSS. Un proyecto nuevo se conecta
+    al aprendizaje con una instrucción: «lee el repo <code>nucleo</code> antes de empezar».
+  </p>
+
+</main>
+</body>
+</html>
