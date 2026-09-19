@@ -27,7 +27,8 @@ copian tal cual y casi nunca se tocan.
 
   /* ---------- bloque · APP ---------- */
   --bloque:       ;   /* la superficie llena, una por pantalla */
-  --bloque-texto: ;
+  --bloque-texto: ;   /* PAR con el anterior: se cambian juntos o ninguno */
+  --bloque-texto-suave: color-mix(in srgb, var(--bloque-texto) 62%, transparent);
   --bloque-grafico: ;
 
   /* ---------- acento · APP ---------- */
@@ -116,6 +117,22 @@ Los valores son de cada app; estas cuatro reglas no:
 4. **Un solo bloque lleno por pantalla.** `--bloque` es la superficie de más peso visual del sistema y
    se usa **una vez**. Cuando hay cuatro, ninguno dirige la mirada. Qué zona se lo queda lo decide
    cada app, pero es una.
+5. **Fondo y texto de una superficie son un par: se cambian juntos o ninguno.** `--bloque` y
+   `--bloque-texto` no son dos decisiones, son una. Cambiar el fondo de una superficie sin cambiar su
+   texto deja una combinación imposible, y el fallo es **silencioso**: el maquetado no se rompe, el
+   texto solo deja de leerse. Esto pasó de verdad — ver el CHANGELOG de v0.2.0.
+
+**Corolario operativo, y es la regla que se pisa:** una app que quiere su bloque de otro color
+sobreescribe **los tokens**, nunca el `background` de la regla. Sobreescribir la regla cambia la mitad
+del par y hereda la otra mitad hacia adentro, a todo texto que no traiga color propio.
+
+```css
+/* MAL — cambia el fondo y hereda el texto del núcleo hacia adentro */
+.bloque { background: #FDF8EF; }
+
+/* BIEN — el par completo, y todo lo de adentro sigue */
+:root { --bloque: #FDF8EF; --bloque-texto: #14171C; }
+```
 
 Los filos de color de 3 px, en orden de prioridad cuando compiten en una misma tarjeta:
 `--alerta` › `--atencion` › color del dato › `--logro` › `--acento`.
@@ -177,6 +194,9 @@ celebra nada: completar algo cambia el estado y aparece la franja de deshacer.
 ## 7. Antipatrones
 
 - Un valor literal en un componente que ya existe como token (`padding: 12px` en vez de `--e3`).
+- **Un color literal dentro de una regla del núcleo.** Es el peor de todos, porque ninguna app lo puede
+  corregir con el único mecanismo que el núcleo ofrece, que es cambiar tokens.
+- **Una app que sobreescribe una regla del núcleo en vez del token** que esa regla usa.
 - Un `clamp()` escrito dentro de un componente.
 - Un color de acento usado para un dato o una categoría.
 - Dos bloques llenos en la misma pantalla.

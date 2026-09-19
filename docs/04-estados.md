@@ -86,7 +86,7 @@ Tres partes: **qué pasó** (en primera persona) + **qué hacer** + **un botón*
             bottom:calc(var(--barra-inf) + var(--e3) + env(safe-area-inset-bottom));
             display:flex; align-items:center; gap:var(--e3);
             padding:var(--e3) var(--e4); border-radius:var(--r-control);
-            background:var(--bloque); color:#fff; font-size:var(--t-meta);
+            background:var(--bloque); color:var(--bloque-texto); font-size:var(--t-meta);
             box-shadow:var(--sombra-2); animation:subir var(--d-aparece) var(--curva); }
 .deshacer button { flex:none; background:none; border:0; color:var(--foco);
                    font-weight:600; font-size:var(--t-meta); min-height:var(--tap); }

@@ -15,14 +15,14 @@ anchos, el área de toque, el comportamiento de una fila, qué hace una app mien
 Una línea en el `<head>`, **antes** de los estilos propios de la app:
 
 ```html
-<link rel="stylesheet" href="https://cdesolmi.github.io/nucleo/v0.1.0/nucleo.css">
+<link rel="stylesheet" href="https://cdesolmi.github.io/nucleo/v0.2.0/nucleo.css">
 <link rel="stylesheet" href="app.css">
 ```
 
 El orden importa: el núcleo pone los valores por defecto y la app los sobreescribe.
 
 **La dirección lleva la versión adentro y su contenido nunca cambia.** Cuando el núcleo
-mejora se publica `v0.2.0` en una dirección nueva, y `v0.1.0` sigue ahí intacta. Por eso una
+mejora se publica `v0.3.0` en una dirección nueva, y `v0.2.0` sigue ahí intacta. Por eso una
 mejora no puede romperte una app mientras no estás mirando.
 
 Ninguna app apunta a la rama principal. Nunca.
@@ -49,7 +49,8 @@ decente, pero están ahí para ser reemplazados. En el `app.css` de cada app:
   --fondo: ; --panel: ; --fondo-hondo: ; --linea: ; --linea-suave: ;
   /* tinta */
   --tinta: ; --tinta-media: ; --tinta-tenue: ;
-  /* la superficie llena, una por pantalla */
+  /* la superficie llena, una por pantalla.
+     --bloque y --bloque-texto son un PAR: se cambian juntos o ninguno */
   --bloque: ; --bloque-texto: ; --bloque-grafico: ;
   /* acento — reservado para la acción */
   --acento: ; --acento-hondo: ; --acento-tenue: ;
@@ -64,6 +65,12 @@ decente, pero están ahí para ser reemplazados. En el `app.css` de cada app:
 Además define: su símbolo e iconografía, cuántos destinos tiene el menú y cómo se llaman,
 la densidad de sus listas, su modelo de datos y todos sus textos.
 
+**Se sobreescriben los tokens, nunca las reglas.** Cambiar `.bloque { background: ... }` en
+el CSS de la app en vez de cambiar `--bloque` deja la mitad del par sin cambiar, y el texto
+de adentro hereda un color que ya no corresponde. No se rompe nada visible: el texto solo
+deja de leerse. Pasó de verdad, y costó dieciséis textos ilegibles (ver el CHANGELOG de
+v0.2.0).
+
 **Lo que no se sobreescribe sin discusión:** la escalera de anchos, el área de toque mínima
 y las reglas de accesibilidad. Son las tres cosas que existen para no volver a equivocarse.
 
@@ -71,9 +78,10 @@ y las reglas de accesibilidad. Son las tres cosas que existen para no volver a e
 
 ## Las directrices
 
-Los nueve documentos de `docs/` son la parte que más rinde, y valen aunque el proyecto no
+Los diez documentos de `docs/` son la parte que más rinde, y valen aunque el proyecto no
 cargue el CSS. Un proyecto nuevo se conecta al aprendizaje con una instrucción: *«lee el repo
-`nucleo` antes de empezar»*.
+`nucleo` antes de empezar»*. Y se conecta **de vuelta** con otra, al cerrar cada tramo:
+*«revisa si algo de lo que resolvimos es del núcleo y no de esta app»* (ver `09-devolucion.md`).
 
 | | |
 |---|---|
@@ -86,15 +94,19 @@ cargue el CSS. Un proyecto nuevo se conecta al aprendizaje con una instrucción:
 | [`06-accesibilidad.md`](docs/06-accesibilidad.md) | Los ocho requisitos y cómo se verifica cada uno |
 | [`07-datos.md`](docs/07-datos.md) | SQL idempotente, migraciones, borrado suave, eventos, RLS |
 | [`08-app-nueva.md`](docs/08-app-nueva.md) | Checklist de montaje y de migración de una app existente |
+| [`09-devolucion.md`](docs/09-devolucion.md) | Cómo un hallazgo de una app llega al núcleo, y cuándo entra |
 
 ---
 
 ## Cómo se gobierna
 
 - **Nada entra al núcleo sin haber funcionado en dos apps**, o en una con uso real sostenido.
-  Sacar algo del núcleo cuesta cinco veces más que meterlo: si dudas, déjalo en la app.
+  Sacar algo del núcleo cuesta cinco veces más que meterlo: si dudas, déjalo en la app. Única
+  excepción: cuando el núcleo se contradice a sí mismo, una app basta.
 - Todo cambio se escribe primero como una línea del `CHANGELOG` nombrando **qué problema real
   resolvió**. Si no se puede nombrar el problema, el cambio no entra.
+- **Todo hallazgo se anota el día que aparece**, en «Anotado para la próxima versión» del
+  `CHANGELOG`. Anotar no toca el CSS y no obliga a nada: es una lista de espera, no de tareas.
 - Las apps pueden sobreescribir cualquier token localmente. La sobreescritura **es parte del
   diseño**, no una deuda. Lo que sí es señal: si tres apps sobreescriben el mismo token con el
   mismo valor, ese valor debería ser el del núcleo.
@@ -115,7 +127,7 @@ cargue el CSS. Un proyecto nuevo se conecta al aprendizaje con una instrucción:
 `src/nucleo.css` es donde se edita. Publicar es congelar una copia:
 
 ```
-cp src/nucleo.css v0.2.0/nucleo.css
+cp src/nucleo.css v0.3.0/nucleo.css
 ```
 
 La carpeta de una versión publicada **no se vuelve a tocar nunca**. Es lo único que hace que
@@ -125,7 +137,11 @@ la promesa de «esto no se te va a romper solo» sea verdad.
 
 ## Estado
 
-`v0.1.0` — extraído de la app de objetivos. **Probado en una sola app**, así que todo aquí es
-candidato, no ley. La segunda prueba es el entrenador de ajedrez: tiene cifras, series y
+`v0.2.0` — la segunda prueba está en curso. El entrenador de ajedrez tiene cifras, series y
 tablas, o sea estresa el núcleo justo donde una app de listas no lo estresa. Lo que sobreviva
 a las dos es núcleo de verdad; lo que no, vuelve a su app.
+
+La primera lección de esa segunda app fue sobre el núcleo mismo: `v0.1.0` traía **decisiones
+de color de una app disfrazadas de comportamiento**, y la primera app con fondo claro que las
+tocó se quedó con dieciséis textos ilegibles. `v0.2.0` corrige eso y escribe la vía de vuelta
+para que el próximo hallazgo no tarde días en llegar.

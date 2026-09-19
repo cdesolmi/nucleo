@@ -98,7 +98,8 @@ Un dato, no una etiqueta. Rectángulo de `--r-chip`, nunca píldora de 999 px.
        font-size:var(--t-meta); }
 .btn.prim { background:var(--acento); border-color:var(--acento); color:#fff; font-weight:600; }
 .btn.prim:hover { background:var(--acento-hondo); border-color:var(--acento-hondo); }
-.btn.tinta { background:var(--bloque); border-color:var(--bloque); color:#fff; font-weight:600; }
+.btn.tinta { background:var(--bloque); border-color:var(--bloque);
+             color:var(--bloque-texto); font-weight:600; }
 .btn.peligro { color:var(--alerta); font-weight:600; }
 .btn.tenue { color:var(--tinta-media); }
 .btn:disabled { opacity:.45; cursor:default; }
@@ -142,7 +143,7 @@ Todo botón de solo ícono lleva `aria-label` **y** `title`.
 
 .bloque { background:var(--bloque); color:var(--bloque-texto);
           border-radius:var(--r-tarjeta); padding:var(--e4); }
-.bloque .rotulo { color:rgba(255,255,255,.62); }
+.bloque .rotulo { color:var(--bloque-texto-suave); }
 ```
 
 `--filo` se setea por JS (`el.style.setProperty("--filo", color)`) cuando la tarjeta necesita señal de
@@ -151,6 +152,26 @@ color. **El texto de la tarjeta no toma ese color**: el filo lleva la identidad.
 **Un solo `.bloque` por pantalla** (ver `01-tokens.md` §3). Si dos zonas se pelean el bloque, la regla
 de desempate se escribe en el documento de la app, con la condición de datos que la resuelve — no «la
 que quede mejor».
+
+### El bloque del núcleo es oscuro, y eso es un valor, no una ley
+
+Los valores de relleno hacen un panel oscuro con texto blanco. Es **relleno neutro**, igual que
+cualquier otro color del núcleo: una app con un bloque claro es perfectamente válida.
+
+Lo que no es válido es cambiarle el fondo por la regla:
+
+```css
+/* MAL — deja el texto blanco del núcleo heredándose hacia adentro */
+.bloque { background: #FDF8EF; }
+
+/* BIEN */
+:root { --bloque: #FDF8EF; --bloque-texto: #14171C; }
+```
+
+`.bloque` fija un `color` que **se hereda a todo elemento interior que no traiga color propio**: los
+títulos, los rótulos de las barras, los nombres de una lista. En el entrenador de ajedrez esa media
+sobreescritura dejó 16 textos ilegibles sin un solo aviso. El texto del bloque y su fondo son un par
+(`01-tokens.md` §3, regla 5).
 
 ---
 

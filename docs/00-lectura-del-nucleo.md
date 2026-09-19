@@ -1,6 +1,7 @@
 # Núcleo — lectura del sistema
 
-> Versión 0.1 · 2026-08-24 · Extraído de la app de objetivos (FOST) después de dos meses de uso real.
+> Versión 0.2 · 2026-09-19 · Extraído de la app de objetivos (FOST) después de dos meses de uso real,
+> y corregido con lo que encontró la segunda app.
 > Este documento es el índice y el contrato. Los demás son las directrices.
 
 ## 1. Qué es esto
@@ -42,6 +43,7 @@ a las otras tres.
 | Accesibilidad y foco | `06-accesibilidad.md` |
 | Datos, eventos y migraciones | `07-datos.md` |
 | Cómo arranca una app nueva encima | `08-app-nueva.md` |
+| Cómo una app le devuelve aprendizaje al núcleo | `09-devolucion.md` |
 
 **No entra, y es de cada app:** la paleta, la tipografía concreta, el símbolo, la iconografía, cuántos
 destinos tiene el menú, los nombres de las pantallas, la densidad de las listas, el modelo de datos
@@ -51,6 +53,10 @@ del dominio, y cualquier componente visual terminado.
 uso real sostenido. Lo que solo funcionó en FOST es de FOST hasta que se demuestre lo contrario.
 Sacar algo del núcleo cuesta cinco veces más que meterlo: si dudas, déjalo en la app.
 
+La única excepción: cuando el núcleo **se contradice a sí mismo**, una app basta, porque no se está
+agregando una decisión sino cumpliendo una que ya estaba escrita. El procedimiento completo de cómo un
+hallazgo de una app llega hasta acá está en `09-devolucion.md`.
+
 ## 4. Cómo se dispone
 
 Todas las apps viven en la misma cuenta de GitHub, el mismo Vercel y el mismo Supabase, así que no
@@ -58,25 +64,33 @@ hace falta npm ni monorepo.
 
 ```
 github.com/<cuenta>/nucleo
-  nucleo.css          ← tokens con valores neutros + base + componentes
+  src/nucleo.css      ← donde se edita
+  v0.1.0/nucleo.css   ← congelado, no se toca nunca
+  v0.2.0/nucleo.css   ← congelado, no se toca nunca
   docs/               ← estos documentos
   CHANGELOG.md
 ```
 
-Cada app lo consume **con versión fijada**, nunca apuntando a la rama principal:
+Cada app lo consume **con la versión adentro de la dirección**, nunca apuntando a la rama principal:
 
+```html
+<link rel="stylesheet" href="https://<cuenta>.github.io/nucleo/v0.2.0/nucleo.css">
+<link rel="stylesheet" href="app.css">
 ```
-apps/ajedrez/
-  vendor/nucleo/      ← copia de una versión concreta (v0.1.0), commiteada
-  app.css             ← sobreescribe lo que esta app define
-```
 
-Se copia la versión, no se referencia en vivo. Un archivo CSS servido desde una URL propaga los
-cambios al instante, lo que suena mejor y es peor: un ajuste que se veía bien en objetivos rompe la
-app de gastos y te enteras cuando la abres.
+El orden importa: el núcleo pone los valores por defecto y la app los sobreescribe después.
 
-**Actualizar una app** es reemplazar la carpeta `vendor/nucleo` por la versión nueva, leer el
-`CHANGELOG` y revisar la app. Cada app se actualiza cuando tú decides; nunca las cuatro a la vez.
+**Lo que hace segura esa línea no es que el archivo sea local, es que la dirección lleva la versión.**
+Apuntar a un CSS en vivo sin versión propaga los cambios al instante, lo que suena mejor y es peor: un
+ajuste que se veía bien en objetivos rompe la app de gastos y te enteras cuando la abres. Con la
+versión en la dirección eso no puede pasar: el contenido de `v0.2.0/` nunca cambia.
+
+**Actualizar una app** es cambiar ese número, leer el `CHANGELOG` y mirar la app. Si algo quedó raro,
+se vuelve al número anterior. Cada app se actualiza cuando tú decides; nunca las cuatro a la vez.
+
+Una app que necesite funcionar sin red desde la primera carga copia la carpeta de la versión a su
+propio repo (`vendor/nucleo/`) en vez de enlazarla. Es la misma promesa por otro camino, y la
+condición es la misma: se copia **una versión publicada**, nunca `src/`.
 
 ## 5. Versiones
 
@@ -97,6 +111,9 @@ casi no se tocan.** Un valor mejorado no cuesta nada; un nombre cambiado cuesta 
 - El núcleo tiene **un dueño de la decisión** (tú) y **un laboratorio** (la app con más uso real).
 - Un cambio al núcleo se escribe primero como una línea en el `CHANGELOG` explicando **qué problema
   resolvió en una app real**. Si no se puede nombrar el problema, el cambio no entra.
+- **Todo hallazgo de una app se anota el día que aparece**, en la sección «Anotado para la próxima
+  versión» del `CHANGELOG`. Anotar no obliga a nada y no toca el CSS: es una lista de espera. El
+  procedimiento está en `09-devolucion.md`.
 - Las apps pueden sobreescribir cualquier token localmente. La sobreescritura **es parte del diseño**,
   no una excepción ni una deuda. Lo que sí es señal: si tres apps sobreescriben el mismo token con el
   mismo valor, ese valor debería ser el del núcleo.
@@ -105,9 +122,14 @@ casi no se tocan.** Un valor mejorado no cuesta nada; un nombre cambiado cuesta 
 
 ## 7. Estado de esta versión
 
-Extraído de FOST. **Probado en una sola app**, así que todo aquí es candidato, no ley. La segunda
-prueba es el entrenador de ajedrez: tiene cifras, series y tablas, o sea estresa el núcleo justo donde
-FOST no lo estresa. Lo que sobreviva a las dos es núcleo de verdad; lo que no, vuelve a FOST.
+Extraído de FOST y **empezando la segunda prueba**, el entrenador de ajedrez: tiene cifras, series y
+tablas, o sea estresa el núcleo justo donde FOST no lo estresa. Lo que sobreviva a las dos es núcleo
+de verdad; lo que no, vuelve a FOST.
+
+La segunda app ya dejó su primera lección, y es sobre este documento: v0.1.0 traía **decisiones de
+color de FOST disfrazadas de comportamiento**. El bloque oscuro con texto blanco no era del sistema,
+era de una app, y la primera app de fondo claro que lo tocó se quedó con dieciséis textos ilegibles.
+La lista de §3 de lo que **no** entra al núcleo ya lo decía; el archivo no la cumplía.
 
 Documentos de origen, para rastrear cualquier decisión: `01-sistema-visual.md`, `10-textos.md`,
 `11-escritorio.md`, `12-correcciones-escritorio.md` de la app de objetivos.

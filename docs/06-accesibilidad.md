@@ -1,6 +1,6 @@
 # Núcleo · 06 — Accesibilidad y foco
 
-No es una capa que se agrega al final: son ocho requisitos que se verifican en cada tramo. Todos
+No es una capa que se agrega al final: son nueve requisitos que se verifican en cada tramo. Todos
 salieron de defectos reales, no de una lista genérica.
 
 ---
@@ -10,7 +10,8 @@ salieron de defectos reales, no de una lista genérica.
 | Requisito | Cómo se cumple | Cómo se verifica |
 |---|---|---|
 | Texto normal ≥ 4.5:1 | `--tinta` ≥ 12:1 · `--tinta-media` ≥ 4.5:1 · `--tinta-tenue` **nunca** en texto que haya que leer | medir los tres sobre `--fondo` y sobre `--panel` |
-| Texto sobre `--bloque` | blanco ≥ 12:1; el rótulo atenuado ≥ 4.5:1 | medir el rótulo, que es el que falla |
+| Texto sobre `--bloque` | `--bloque-texto` ≥ 12:1 sobre `--bloque`; el rótulo atenuado ≥ 4.5:1 | medir el rótulo, que es el que falla |
+| Ningún texto invisible por herencia | el par fondo/texto se cambia completo, nunca a medias | correr el barrido de §8 en cada pantalla |
 | Área táctil ≥ 44 y separación ≥ 8 | `--tap` y `--tap-sep` en fila, nav y botones | medir en el DOM, no a ojo |
 | Foco de teclado visible | `:focus-visible` global, anillo 2 px `--foco` | recorrer la pantalla entera con Tab |
 | Color nunca único indicador | todo estado lleva texto | leer la pantalla en escala de grises |
@@ -91,3 +92,45 @@ dos minutos; el rediseño de una pantalla que no las pasó son dos días.
 La prueba más barata y la que más encuentra: **recorrer la pantalla completa con Tab, y mirarla en
 escala de grises.** Si con Tab te pierdes, el orden de foco está mal. Si en grises no distingues un
 estado, ese estado depende del color.
+
+---
+
+## 8. El barrido de contraste
+
+Un texto que hereda un color equivocado **no rompe nada**: el maquetado queda intacto y el texto
+simplemente deja de leerse. Por eso no se encuentra mirando, y por eso hay un barrido. Se pega en la
+consola del navegador, con la pantalla abierta:
+
+```js
+const lum = c => {
+  const [r,g,b] = c.match(/[\d.]+/g).map(Number);
+  const f = v => (v/=255) <= .03928 ? v/12.92 : ((v+.055)/1.055)**2.4;
+  return .2126*f(r) + .7152*f(g) + .0722*f(b);
+};
+const fondo = el => {
+  for (let n = el; n; n = n.parentElement) {
+    const b = getComputedStyle(n).backgroundColor;
+    if (b && b !== 'transparent' && !b.startsWith('rgba(0, 0, 0, 0')) return b;
+  }
+  return 'rgb(255, 255, 255)';
+};
+console.table(
+  [...document.querySelectorAll('body *')]
+    .filter(e => !e.children.length && e.textContent.trim())
+    .map(e => {
+      const a = lum(getComputedStyle(e).color), b = lum(fondo(e));
+      const contraste = (Math.max(a,b) + .05) / (Math.min(a,b) + .05);
+      return { texto: e.textContent.trim().slice(0,40), contraste: +contraste.toFixed(2) };
+    })
+    .filter(r => r.contraste < 4.5)
+    .sort((x,y) => x.contraste - y.contraste)
+);
+```
+
+Devuelve todo texto de hoja con menos de 4.5:1 contra el primer fondo opaco que tiene encima, ordenado
+de peor a mejor. **Un 1.0 es texto del mismo color que su fondo**, o sea invisible.
+
+Es una prueba de humo, no un reemplazo de medir: ignora la opacidad heredada, las imágenes de fondo y
+los degradados, y marca como falla texto decorativo que a veces es legítimo. Sirve para lo que sirve:
+en una pantalla sana devuelve una tabla corta y conocida. El día que devuelve dieciséis filas nuevas,
+algo se rompió en silencio.
